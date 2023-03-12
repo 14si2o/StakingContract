@@ -2,6 +2,7 @@
 pragma solidity ^0.8.13; 
 
 import "./IERC20.sol";
+import "./openzeppelin/contracts/utils/Math.sol";
 
 contract StakingRewards {
     IERC20 public immutable stakingToken;
@@ -59,8 +60,22 @@ contract StakingRewards {
         balanceOf[msg.sender] += _amount;
         totalSupply += _amount;
     }
-    function withdraw(uint _amount) external {}
-    function earned(address _account) external view returns (uint) {}
+    function withdraw(uint _amount) external {
+        require(_amount > 0, "amount = 0");
+        balanceOf[msg.sender] -= _amount;
+        totalSupply -= _amount;
+        stakingToken.transfer(msg.sender, _amount);
+    }
+    function rewardPerToken() public view returns (uint){
+        if(totalSupply == 0){
+            return rewardPerTokenStored;
+        }
+
+        return rewardPerTokenStored + (rewardRate * (Math.min(block.timestamp, finishAt) - updatedAt)*1e18) / totalSupply;
+    }
+    function earned(address _account) external view returns (uint) {
+        return balanceOf[_account] * ((rewardPerToken() - userRewardPerTokenPaid[_account])/ 1e18) + rewards[_account];
+    }
     function getReward() external {}
 
 
