@@ -52,11 +52,13 @@ contract StakingRewards {
 
         finishAt = block.timestamp + duration;
         updatedAt = block.timestamp;
-         
-
-
     }
-    function stake(uint _amount) external {}
+    function stake(uint _amount) external {
+        require(_amount > 0, "amount equals 0");
+        stakingToken.transferFrom(msg.sender,address(this),_amount);
+        balanceOf[msg.sender] += _amount;
+        totalSupply += _amount;
+    }
     function withdraw(uint _amount) external {}
     function earned(address _account) external view returns (uint) {}
     function getReward() external {}
